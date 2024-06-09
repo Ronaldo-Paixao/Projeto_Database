@@ -1,0 +1,145 @@
+QUAL O CLIENTE QUE MAIS FEZ PEDIDOS POR ANO?
+
+SELECT
+c.nome_cliente AS NomeCliente,
+COUNT(*) AS TotalPedidos
+FROM
+tb_cliente c
+JOIN
+tb_mesa m ON c.id_cliente = m.id_cliente
+JOIN
+tb_pedido ped ON m.codigo_mesa = ped.codigo_mesa
+GROUP BY 
+c.nome_cliente
+ORDER BY 
+TotalPedidos DESC
+LIMIT 1;
+
+
+
+
+
+
+QUAL O CLIENTE QUE MAIS GASTOU EM TODOS OS ANOS?
+
+SELECT
+    c.nome_cliente AS cliente,
+    SUM(p.preco_unitario_prato * pd.quantidade_pedido) AS total_gasto
+FROM
+    tb_pedido pd
+JOIN
+    tb_mesa m ON pd.codigo_mesa = m.codigo_mesa
+JOIN
+    tb_cliente c ON m.id_cliente = c.id_cliente
+JOIN
+    tb_prato p ON pd.codigo_prato = p.codigo_prato
+GROUP BY
+    cliente
+ORDER BY
+    total_gasto DESC
+LIMIT 1;
+
+
+
+
+
+
+QUAL O PERÍODO DO ANO EM QUE O RESTAURANTE TEM MAIOR MOVIMENTO?
+
+SELECT
+    YEAR(data_hora_entrada) AS ano,
+    MONTH(data_hora_entrada) AS mes,
+    COUNT(*) AS total_movimento
+FROM
+    tb_mesa
+GROUP BY
+    ano, mes
+ORDER BY
+    total_movimento DESC
+LIMIT 1;
+
+
+
+
+
+
+
+
+QUAL(IS) O(S) CLIENTE(S) QUE TROUXE(RAM) MAIS PESSOAS POR ANO?
+
+select distinct year(data_hora_entrada)
+from tb_mesa;
+-- 2
+select year(ms.data_hora_entrada) as ano, cl.nome_cliente as cliente, sum(ms.num_pessoa_mesa) as qtd_pessoas 
+from tb_mesa ms
+left join tb_cliente cl
+on ms.id_cliente = cl.id_cliente
+where year(ms.data_hora_entrada) = 2022
+group by 1,2
+order by 3 desc
+limit 10;
+-- 3
+
+select * 
+from (
+(select year(ms.data_hora_entrada) as ano, cl.nome_cliente as cliente, sum(ms.num_pessoa_mesa) as qtd_pessoas 
+from tb_mesa ms
+left join tb_cliente cl
+on ms.id_cliente = cl.id_cliente
+where year(ms.data_hora_entrada) = 2022
+group by 1,2
+order by 3 desc
+limit 10)
+union
+(select year(ms.data_hora_entrada) as ano, cl.nome_cliente as cliente, sum(ms.num_pessoa_mesa) as qtd_pessoas 
+from tb_mesa ms
+left join tb_cliente cl
+on ms.id_cliente = cl.id_cliente
+where year(ms.data_hora_entrada) = 2023
+group by 1,2
+order by 3 desc
+limit 10)
+union(
+select year(ms.data_hora_entrada) as ano, cl.nome_cliente as cliente, sum(ms.num_pessoa_mesa) as qtd_pessoas 
+from tb_mesa ms
+left join tb_cliente cl
+on ms.id_cliente = cl.id_cliente
+where year(ms.data_hora_entrada) = 2024
+group by 1,2
+order by 3 desc
+limit 10
+)) as
+tb_top10_major_consumer_per_year;
+
+
+
+
+
+
+QUAL A EMPRESA QUE TEM MAIS FUNCIONÁRIOS COMO CLIENTES DO RESTAURANTE?
+
+SELECT e.nome_empresa, COUNT(*) AS numero_de_funcionarios
+FROM tb_empresa e
+LEFT JOIN tb_beneficio b ON e.codigo_empresa = b.codigo_empresa
+LEFT JOIN tb_cliente c ON b.email_funcionario = c.email_cliente
+GROUP BY e.nome_empresa
+ORDER BY numero_de_funcionarios DESC
+LIMIT 1;
+
+
+
+
+QUAL A EMPRESA QUE TEM MAIS FUNCIONÁRIOS QUE CONSOMEM SOBREMESAS POR ANO?
+
+SELECT e.nome_empresa, YEAR(ms.data_hora_entrada) AS ano, COUNT(DISTINCT c.id_cliente) AS numero_de_funcionarios
+FROM tb_empresa e
+JOIN tb_beneficio b ON e.codigo_empresa = b.codigo_empresa
+JOIN tb_cliente c ON b.codigo_funcionario = c.id_cliente
+JOIN tb_mesa ms ON c.id_cliente = ms.id_cliente
+JOIN tb_pedido pd ON ms.codigo_mesa = pd.codigo_mesa
+JOIN tb_prato p ON pd.codigo_prato = p.codigo_prato
+JOIN tb_tipo_prato tp ON p.codigo_tipo_prato = tp.codigo_tipo_prato
+WHERE tp.nome_tipo_prato = 'Sobremesa'
+GROUP BY e.nome_empresa, YEAR(ms.data_hora_entrada)
+ORDER BY COUNT(DISTINCT c.id_cliente) DESC
+LIMIT 1;
